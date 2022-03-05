@@ -2,47 +2,50 @@ package phonebook
 
 import java.io.File
 import kotlin.math.sqrt
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 fun main() {
-    val phoneBook = File("F:\\Data\\small_directory.txt").readLines().toTypedArray()
-    val findList = File("F:\\Data\\small_find.txt").readLines()
+    val phoneBook = File("F:\\Data\\directory.txt").readLines().toTypedArray()
+    val findList = File("F:\\Data\\find.txt").readLines()
 
     println("Start searching (linear search)...")
     var startTime = System.currentTimeMillis()
-
-    var counter = 0
-    for (searchName in findList)
-        for (record in phoneBook)
-            if (searchName.equals(nameFrom(record))) counter++
-
-    var searchDuration = (System.currentTimeMillis() - startTime).toDuration(DurationUnit.MILLISECONDS)
-    println ("Found $counter / ${findList.size} entries. Time taken: ${searchDuration.toStr()}" )
+    var count = 0
+    for (find in findList) if (linearSearch(phoneBook, find) >= 0) count++
+    var timeTaken = System.currentTimeMillis() - startTime
+    println ("Found $count / ${findList.size} entries. Time taken: ${stringOf(timeTaken)}" )
 
     println("\nStart searching (bubble sort + jump search)...")
     startTime = System.currentTimeMillis()
+    var sortingTime = boobleSort(phoneBook, timeTaken * 10)  // booble search
 
-    for (len in phoneBook.size downTo 1)
-        for (j in 1 until len)// booble sort
-            if (nameFrom(phoneBook[j - 1]) > nameFrom(phoneBook[j]))
-                phoneBook[j - 1] = phoneBook[j].also { phoneBook[j] = phoneBook[j - 1] }
-    val sortDuration = (System.currentTimeMillis() - startTime).toDuration(DurationUnit.MILLISECONDS)
-
-    counter = 0
-    for (searchName in findList) if (jumpSearch(phoneBook, searchName) >= 0) counter++ // jumpSearch
-
-    val totalDuration = (System.currentTimeMillis() - startTime).toDuration(DurationUnit.MILLISECONDS)
-    searchDuration = totalDuration - sortDuration
-    println ("Found $counter / ${findList.size} entries. Time taken: ${totalDuration.toStr()}")
-    println ("Sorting time: ${sortDuration.toStr()} - STOPPED, moved to linear search")
-    print ("Searching time: ${searchDuration.toStr()}")
+    count = 0
+    if (sortingTime > 0) {
+        for (find in findList) if (jumpSearch(phoneBook, find) >= 0) count++
+        timeTaken = System.currentTimeMillis() - startTime
+        val searchingTime = timeTaken - sortingTime
+        println ("Found $count / ${findList.size} entries. " +
+                "Time taken: ${stringOf(timeTaken)}\n" +
+                "Sorting time: ${stringOf(sortingTime)}\n" +
+                "Searching time: ${stringOf(searchingTime)}")
+    } else {
+        sortingTime = System.currentTimeMillis() - startTime
+        count = 0
+        for (find in findList) if (linearSearch(phoneBook, find) >= 0) count++
+        val timeTaken = System.currentTimeMillis() - startTime
+        val searchingTime = timeTaken - sortingTime
+        println ("Found $count / ${findList.size} entries. " +
+                "Time taken: ${stringOf(timeTaken)}\n" +
+                "Sorting time: ${stringOf(sortingTime)} - STOPPED, moved to linear search\n" +
+                "Searching time: ${stringOf(searchingTime)}")
+    }
 }
 
 fun nameFrom(record: String): String = record.split(" ", limit = 2).component2()
 
-fun Duration.toStr() = this.toComponents { m, s, n -> "$m min. $s sec. ${n / 1000000} ms." }
+fun stringOf(timeInterval: Long) = timeInterval.toDuration(DurationUnit.MILLISECONDS)
+    .toComponents { m, s, n -> "$m min. $s sec. ${n / 1000000} ms." }
 
 fun jumpSearch(array: Array<String>, find: String, start: Int = 0, end: Int = array.lastIndex): Int {
     if (find < nameFrom(array[start])) return -1
@@ -51,7 +54,23 @@ fun jumpSearch(array: Array<String>, find: String, start: Int = 0, end: Int = ar
         for (pos in start until end step step)
             if (find <= nameFrom(array[(pos + step).coerceAtMost(end)]))
                 return jumpSearch(array, find, pos, (pos + step).coerceAtMost(end))
-    } else for (pos in start..end) if (find.compareTo(nameFrom(array[pos])) == 0) return pos // linear search
+    }
+    return linearSearch(array, find, start, end)
+}
+
+fun linearSearch(array: Array<String>, find: String, start: Int = 0, end: Int = array.lastIndex ): Int {
+    for (i in start..end) if (find.equals(nameFrom(array[i]))) return i
     return -1
+}
+
+fun boobleSort(array: Array<String>, timeLimit: Long = 0): Long {
+    val startTime = System.currentTimeMillis()
+    for (len in array.size downTo 1)
+        for (j in 1 until len) {
+            if (timeLimit > 0 && System.currentTimeMillis() - startTime > timeLimit) return 0
+            if (nameFrom(array[j - 1]) > nameFrom(array[j]))
+                array[j - 1] = array[j].also { array[j] = array[j - 1] }
+        }
+    return System.currentTimeMillis() - startTime
 }
 

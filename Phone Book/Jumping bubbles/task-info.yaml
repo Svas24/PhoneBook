@@ -46,23 +46,9 @@ files:
         }
     }
   learner_created: false
-- name: directory.txt
-  visible: true
-  learner_created: true
-- name: find.txt
-  visible: true
-  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/7749#comment
-status: Failed
+status: Solved
 feedback:
-  message: |-
-    Wrong answer in test #1
-
-    Please find below the output of your program during this failed test.
-
-    ---
-
-    Start searching (bubble sort + jump search)...
-    &gt;&gt;&gt;&gt;&gt;&gt;&gt; Celestina Orren == jumpSearch(phoneBook, find)
-  time: Mon, 28 Feb 2022 14:17:15 UTC
+  message: Congratulations!
+  time: Sat, 05 Mar 2022 20:35:17 UTC
 record: -1
